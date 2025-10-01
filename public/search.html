@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>search page</title>
+
+    <!-- font awesome cdn link  -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
+    <!-- custom css file link  -->
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+    <header class="header">
+
+        <section class="flex">
+
+            <a href="index.html" class="logo">HEAVENLY FOOD'S</a>
+
+            <nav class="navbar">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="menu.html"> Menu</a>
+                <a href="orders.html">Orders</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+
+            <div class="icons">
+                <a href="search.html"><i class="fas fa-search"></i></a>
+                <a href="cart.html"><i class="fas fa-shopping-cart"></i><span id="cart-count">0</span></a>
+                <div id="user-btn" class="fas fa-user"></div>
+                <div id="menu-btn" class="fas fa-bars"></div>
+            </div>
+
+            <div class="profile">
+                <p class="name">Guest</p>
+                <div class="flex">
+                    <a href="profile.html" class="btn">Profile</a>
+                    <a href="#" class="delete-btn">Logout</a>
+                </div>
+                <p class="account"><a href="login.html">Login</a> or <a href="register.html">Register</a></p>
+            </div>
+
+        </section>
+
+    </header>
+
+    <section class="search-form">
+        <form action="" method="post">
+            <input type="text" class="box" name="search_box" placeholder="search here..." maxlength="100">
+            <button type="submit" class="fas fa-search" name="search_btn"></button>
+        </form>
+    </section>
+
+    <section class="products" style="padding-top: 0; min-height: 100vh;">
+        <div class="box-container">
+        </div>
+    </section>
+
+    <footer class="footer">
+
+        <section class="box-container">
+
+            <div class="box">
+                <img src="images/email-icon.png" alt="">
+                <h3>Our Email</h3>
+                <a href="mailto:HEAVENLY-FOODS@gmail.com">HEAVENLY-FOODS@gmail.com</a>
+
+            </div>
+
+            <div class="box">
+                <img src="images/clock-icon.png" alt="">
+                <h3>Opening Hours</h3>
+                <p>07:00 AM To 10:00 PM </p>
+            </div>
+
+            <div class="box">
+                <img src="images/map-icon.png" alt="">
+                <h3>Our Address</h3>
+                <a href="https://www.google.com/maps">Belagavi, india - 590001</a>
+            </div>
+
+            <div class="box">
+                <img src="images/phone-icon.png" alt="">
+                <h3>Our Number</h3>
+                <a href="tel:6361062015">+91-6361062015</a>
+            </div>
+
+        </section>
+
+        <div class="credit">&copy; copyright @ 2025 by <span>THE HEAVENLY HUB</span> | all rights reserved!</div>
+
+    </footer>
+
+    <div class="loader">
+        <img src="images/loader.gif" alt="">
+    </div>
+
+    <script>
+    // --- Search Bar Functionality ---
+    // Handles search input, AJAX product search, loader, and result rendering
+    document.addEventListener('DOMContentLoaded', function () {
+        // Show/Hide loader functions
+        function showLoader() {
+            const loader = document.querySelector('.loader');
+            if (loader) loader.style.display = 'flex';
+        }
+        function hideLoader() {
+            const loader = document.querySelector('.loader');
+            if (loader) loader.style.display = 'none';
+        }
+        
+        const searchForm = document.querySelector('.search-form form');
+        const searchBox = document.querySelector('.search-form input[name="search_box"]');
+        const productsSection = document.querySelector('.products');
+        const loader = document.querySelector('.loader');
+        
+        // Initial load - show all products
+        showLoader();
+
+        // Helper to render products
+        function renderProducts(products) {
+            hideLoader();
+            const container = productsSection.querySelector('.box-container');
+            if (!products.length) {
+                container.innerHTML = '<p style="text-align:center; width: 100%;">No products found.</p>';
+                return;
+            }
+            container.innerHTML = products.map(product => {
+                let imgPath = product.image || '';
+                if (imgPath && (imgPath.startsWith('uploaded_img/') || imgPath.startsWith('/uploaded_img/'))) {
+                    imgPath = '/uploaded_img/' + imgPath.replace(/^\/?uploaded_img\//, '');
+                }
+                return `
+                    <form class="box add-to-cart-form">
+                        <span class="view-image" data-img="${imgPath}" title="Quick View"><i class="fas fa-eye"></i></span>
+                        <button class="fas fa-shopping-cart" type="submit" name="add_to_cart" title="Add to Cart"></button>
+                        <img src="${imgPath}" alt="${product.name || ''}">
+                        <a href="#" class="cat">${product.category || ''}</a>
+                        <div class="name">${product.name || ''}</div>
+                        <div class="flex">
+                            <div class="price"><span>₹</span>${product.price || ''}<span>/-</span></div>
+                        </div>
+                        <div class="flex">
+                            <div class="addcart"><button class="btn" type="submit" name="add_to_cart">Add to Cart</button></div>
+                            <input type="hidden" name="productId" value="${product._id}">
+                            <input type="number" name="qty" class="qty" min="1" max="99" value="1" title="Quantity" placeholder="Qty" onkeypress="if(this.value.length == 2) return false;">
+                        </div>
+                    </form>
+                `;
+            }).join('');
+            // Attach quick view modal if available
+            if (window.attachQuickViewModal) window.attachQuickViewModal();
+            // Attach add-to-cart event handler after rendering
+            container.querySelectorAll('form.add-to-cart-form').forEach(form => {
+                form.onsubmit = async function(e) {
+                    e.preventDefault();
+                    showLoader();
+                    const productId = form.querySelector('input[name="productId"]').value;
+                    const qty = form.querySelector('input.qty').value || 1;
+                    const addRes = await fetch('/add-to-cart', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId, quantity: qty })
+                    });
+                    const addData = await addRes.json();
+                    hideLoader();
+                    if (addData.success) {
+                        window.location.href = '/cart.html';
+                    } else {
+                        alert(addData.error || 'Failed to add to cart');
+                    }
+                };
+            });
+        }
+
+        // --- Dynamic product search logic ---
+        // Always fetch latest products for every search
+        async function filterAndRender(query) {
+            query = query.trim().toLowerCase();
+            showLoader();
+            let allProducts = [];
+            try {
+                const res = await fetch('/admin/products');
+                if (res.ok) {
+                    allProducts = await res.json();
+                } else {
+                    allProducts = [];
+                }
+            } catch (err) {
+                allProducts = [];
+            }
+            let filtered;
+            if (!query) {
+                // If query is empty, show all products
+                filtered = allProducts;
+            } else {
+                // Robust filtering: match name, category, and description
+                filtered = allProducts.filter(prod =>
+                    (prod.name && prod.name.toLowerCase().includes(query)) ||
+                    (prod.category && prod.category.toLowerCase().includes(query)) ||
+                    (prod.description && prod.description.toLowerCase().includes(query))
+                );
+            }
+            renderProducts(filtered);
+        }
+
+        // Show all products on initial page load
+        filterAndRender('');
+
+        // Handle search form submit (Enter key)
+        searchForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            // Always trigger search and show results
+            const query = searchBox.value;
+            filterAndRender(query);
+            // Optionally, scroll to products section for visibility
+            productsSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Trigger search on input change with debounce
+        let searchTimeout;
+        searchBox.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterAndRender(searchBox.value);
+            }, 300);
+        });
+
+        // Add to cart from search results
+        productsSection.addEventListener('submit', async function (e) {
+            if (e.target.classList.contains('add-to-cart-form')) {
+                e.preventDefault();
+                showLoader();
+                const productId = e.target.querySelector('input[name="productId"]').value;
+                const qty = e.target.querySelector('input.qty').value || 1;
+                const addRes = await fetch('/add-to-cart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId, quantity: qty })
+                });
+                const addData = await addRes.json();
+                hideLoader();
+                if (addData.success) {
+                    window.location.href = '/cart.html';
+                } else {
+                    alert(addData.error || 'Failed to add to cart');
+                }
+            }
+        });
+        
+    });
+    </script>
+    <script src="js/script.js"></script>
+</body>
+
+</html>

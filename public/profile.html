@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>my profile</title>
+
+    <!-- font awesome cdn link  -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
+    <!-- custom css file link  -->
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+    <header class="header">
+
+        <section class="flex">
+
+            <a href="index.html" class="logo">HEAVENLY FOOD'S</a>
+
+            <nav class="navbar">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="menu.html">Menu</a>
+                <a href="orders.html">Orders</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+
+            <div class="icons">
+                <div id="user-btn" class="fas fa-user"></div>
+                <div id="menu-btn" class="fas fa-bars"></div>
+            </div>
+
+            <div class="profile">
+                <p class="name">Guest</p>
+                <div class="flex">
+                    <a href="profile.html" class="btn">Profile</a>
+                    <a href="#" class="delete-btn">Logout</a>
+                </div>
+                <p class="account"><a href="login.html">Login</a> or <a href="register.html">Register</a></p>
+            </div>
+
+        </section>
+
+    </header>
+
+    <div class="heading">
+        <h3>My Profile</h3>
+        <p><a href="index.html">Home </a> <span> / Profile</span></p>
+    </div>
+
+    <section class="user-details">
+
+        <div class="user">
+            <img src="images/user-icon.png" alt="">
+            <p><i class="fas fa-user"></i> <span id="profile-user-name"></span></p>
+            <p><i class="fas fa-phone"></i> <span id="profile-user-phone"></span></p>
+            <p><i class="fas fa-envelope"></i> <span id="profile-user-email"></span></p>
+            <a href="update_profile.html" class="btn">Update Profile</a>
+            <p class="address"><i class="fas fa-map-marker-alt"></i> <span id="profile-user-address"></span></p>
+            <a href="update_address.html" class="btn">Update Address</a>
+        </div>
+
+    </section>
+
+    <footer class="footer">
+
+        <section class="box-container">
+
+            <div class="box">
+                <img src="images/email-icon.png" alt="">
+                <h3>our email</h3>
+                <a href="mailto:HEAVENLY-FOODS@gmail.com">HEAVENLY-FOODS@gmail.com</a>
+            </div>
+
+            <div class="box">
+                <img src="images/map-icon.png" alt="">
+                <h3>Our Address</h3>
+                <a href="https://www.google.com/maps">Belagavi, india - 590001</a>
+            </div>
+
+            <div class="box">
+                <img src="images/phone-icon.png" alt="">
+                <h3>Our Number</h3>
+                <a href="tel:6361062015">+91-6361062015</a>
+            </div>
+
+        </section>
+
+        <div class="credit">&copy; copyright @ 2025 by <span>THE HEAVENLY HUB</span> | all rights reserved!</div>
+
+    </footer>
+
+    <div class="loader">
+        <img src="images/loader.gif" alt="">
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', async function () {
+  try {
+    const res = await fetch('/profile-data');
+    if (res.ok) {
+      const user = await res.json();
+      document.getElementById('profile-user-name').textContent = user.name || '';
+      document.getElementById('profile-user-phone').textContent = (user.phone !== undefined && user.phone !== null && user.phone !== '') ? user.phone : 'Not provided';
+      document.getElementById('profile-user-email').textContent = user.email || '';
+      document.getElementById('profile-user-address').textContent = user.address || '';
+    }
+  } catch {}
+});
+</script>
+
+</body>
+
+</html>

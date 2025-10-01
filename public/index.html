@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>home</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css" />
+
+    <!-- font awesome cdn link  -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
+    <!-- custom css file link  -->
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+    <header class="header">
+
+        <section class="flex">
+
+            <a href="index.html" class="logo">HEAVENLY FOOD'S</a>
+
+            <nav class="navbar">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="menu.html">Menu</a>
+                <a href="orders.html">Orders</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+
+                <div class="icons">
+                <a href="search.html" title="Search"><i class="fas fa-search"></i></a>
+                <a href="cart.html"><i class="fas fa-shopping-cart"></i><span id="cart-count">0</span></a>
+                <div id="user-btn" class="fas fa-user"></div>
+                <div id="menu-btn" class="fas fa-bars"></div>
+            </div>
+
+            <div class="profile">
+                <p class="name">Guest</p>
+                <div class="flex">
+                  <a href="profile.html" class="btn">Profile</a>
+                  <a href="#" class="delete-btn">Logout</a>
+                </div>
+                <p class="account"><a href="login.html">Login</a> or <a href="register.html">Register</a></p>
+            </div>              
+
+        </section>
+
+    </header>
+
+    <section class="home">
+
+        <div class="swiper home-slider">
+
+            <div class="swiper-wrapper">
+
+                <div class="swiper-slide slide">
+                    <div class="content">
+                        <span>Order Online</span>
+                        <h3>Delicious Pizza</h3>
+                        <a href="menu.html" class="btn">See Menu's</a>
+                    </div>
+                    <div class="image">
+                        <img src="images/home-img-1.png" alt="">
+                    </div>
+                </div>
+
+                <div class="swiper-slide slide">
+                    <div class="content">
+                        <span>Order Online</span>
+                        <h3>Double Hamburger</h3>
+                        <a href="menu.html" class="btn">See Menu's</a>
+                    </div>
+                    <div class="image">
+                        <img src="images/home-img-2.png" alt="">
+                    </div>
+                </div>
+
+                <div class="swiper-slide slide">
+                    <div class="content">
+                        <span>Order Online</span>
+                        <h3>Roasted Chicken</h3>
+                        <a href="menu.html" class="btn">See Menu's</a>
+                    </div>
+                    <div class="image">
+                        <img src="images/home-img-3.png" alt="">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="swiper-pagination"></div>
+
+        </div>
+
+    </section>
+
+    <section class="category">
+
+        <h1 class="title">Food Category</h1>
+
+        <div class="box-container">
+
+            <a href="category/fastfood.html" class="box">
+                <img src="images/cat-1.png" alt="">
+                <h3>Fast Food</h3>
+            </a>
+
+            <a href="category/dishes.html" class="box">
+                <img src="images/cat-2.png" alt="">
+                <h3>Main Dishes</h3>
+            </a>
+
+            <a href="category/drinks.html" class="box">
+                <img src="images/cat-3.png" alt="">
+                <h3>Drinks</h3>
+            </a>
+
+            <a href="category/deserts.html" class="box">
+                <img src="images/cat-4.png" alt="">
+                <h3>Desserts</h3>
+            </a>
+
+        </div>
+
+    </section>
+
+    <section class="products">
+        <h1 class="title">Latest Dishes</h1>
+        <div class="box-container" id="home-products"></div>
+        <div class="more-btn">
+            <a href="menu.html" class="btn">View All</a>
+        </div>
+    </section>
+    <script>
+    async function renderHomeProducts() {
+        const res = await fetch('/admin/products');
+        const products = await res.json();
+        const container = document.getElementById('home-products');
+        container.innerHTML = '';
+        products.slice(0, 6).forEach(prod => {
+            let imgPath = prod.image;
+            if (imgPath.startsWith('uploaded_img/')) {
+                imgPath = '/' + imgPath.replace(/^uploaded_img\//, 'uploaded_img/');
+            }
+            container.innerHTML += `
+            <form class="box">
+                <span class="view-image" data-img="${imgPath}" title="Quick View"><i class="fas fa-eye"></i></span>
+                <button class="fas fa-shopping-cart" type="submit" name="add_to_cart" title="Add to Cart"></button>
+                <img src="${imgPath}" alt="${prod.name}">
+                <a href="category.html" class="cat">${prod.category}</a>
+                <div class="name">${prod.name}</div>
+                <div class="flex">
+                    <div class="price"><span>₹</span>${prod.price}<span>/-</span></div>
+                </div>
+                <div class="flex">
+                    <div class="addcart"><button class="btn" type="submit" name="add_to_cart">Add to Cart</button></div>
+                    <input type="number" name="qty" class="qty" min="1" max="99" value="1" title="Quantity" placeholder="Qty" onkeypress="if(this.value.length == 2) return false;">
+                </div>
+            </form>`;
+        });
+        if (window.attachHomeAddToCart) attachHomeAddToCart();
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        renderHomeProducts();
+        if (window.attachQuickViewModal) window.attachQuickViewModal();
+    });
+    </script>
+
+    <footer class="footer">
+
+        <section class="box-container">
+
+            <div class="box">
+                <img src="images/email-icon.png" alt="">
+                <h3>Our Email</h3>
+                <a href="mailto:HEAVENLY-FOODS@gmail.com">HEAVENLY-FOODS@gmail.com</a>
+
+            </div>
+
+            <div class="box">
+                <img src="images/clock-icon.png" alt="">
+                <h3>Opening Hours</h3>
+                <p>07:00 AM To 10:00 PM </p>
+            </div>
+
+            <div class="box">
+                <img src="images/map-icon.png" alt="">
+                <h3>Our Address</h3>
+                <a href="https://www.google.com/maps">Belagavi, india - 590001</a>
+            </div>
+
+            <div class="box">
+                <img src="images/phone-icon.png" alt="">
+                <h3>Our Number</h3>
+                <a href="tel:6361062015">+91-6361062015</a>
+            </div>
+
+        </section>
+
+        <div class="credit">&copy; copyright @ 2025 by <span>THE HEAVENLY HUB</span> | all rights reserved!</div>
+
+    </footer>
+
+    <div class="loader">
+        <img src="images/loader.gif" alt="">
+    </div>
+
+    <script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
+
+    <script src="js/script.js"></script>
+
+    <script>
+        var swiper = new Swiper(".home-slider", {
+            loop: true,
+            grabCursor: true,
+            effect: "flip",
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+        });
+    </script>
+
+</body>
+
+</html>

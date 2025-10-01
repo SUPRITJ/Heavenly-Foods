@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drinks</title>
+
+    <!-- font awesome cdn link  -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
+    <!-- custom css file link  -->
+    <link rel="stylesheet" href="../css/style.css">
+
+</head>
+
+<body>
+
+    <header class="header">
+
+        <section class="flex">
+
+            <a href="../../index.html" class="logo">HEAVENLY FOOD'S</a>
+
+            <nav class="navbar">
+                <a href="../index.html">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../menu.html">Menu</a>
+                <a href="../orders.html">Orders</a>
+                <a href="../contact.html">Contact</a>
+            </nav>
+
+            <div class="icons">
+                <a href="../search.html" title="Search"><i class="fas fa-search"></i></a>
+                <a href="../cart.html"><i class="fas fa-shopping-cart"></i><span id="cart-count">0</span></a>
+                <div id="user-btn" class="fas fa-user"></div>
+                <div id="menu-btn" class="fas fa-bars"></div>
+            </div>
+
+            <div class="profile">
+                <p class="name">SUPRIT JAMDAR</p>
+                <div class="flex">
+                    <a href="../profile.html" class="btn">Profile</a>
+                    <a href="#" class="delete-btn">Logout</a>
+                </div>
+                <p class="account"><a href="../login.html">Login</a> or <a href="../register.html">Register</a></p>
+            </div>
+
+        </section>
+
+    </header>
+
+    <div class="heading">
+        <h3>Drinks</h3>
+        <p><a href="../index.html">Home </a> <span> / Category</span></p>
+    </div>
+
+    <section class="products">
+        <h1 class="title">Drinks</h1>
+        <div class="box-container" id="drinks-products"></div>
+    </section>
+    <script>
+    async function renderDrinksProducts() {
+        const res = await fetch('/admin/products');
+        const products = await res.json();
+        const container = document.getElementById('drinks-products');
+        container.innerHTML = '';
+        products.filter(prod => prod.category === 'Drinks').forEach(prod => {
+            let imgPath = prod.image;
+            if (imgPath.startsWith('uploaded_img/')) {
+                imgPath = '/' + imgPath.replace(/^uploaded_img\//, 'uploaded_img/');
+            }
+            container.innerHTML += `
+            <form class="box add-to-cart-form">
+                <span class="view-image" data-img="${imgPath}" title="Quick View"><i class="fas fa-eye"></i></span>
+                <button class="fas fa-shopping-cart" type="submit" name="add_to_cart" title="Add to Cart"></button>
+                <img src="${imgPath}" alt="${prod.name}">
+                <a href="#" class="cat">${prod.category}</a>
+                <div class="name">${prod.name}</div>
+                <div class="flex">
+                    <div class="price"><span>₹</span>${prod.price}<span>/-</span></div>
+                </div>
+                <div class="flex">
+                    <div class="addcart"><button class="btn" type="submit" name="add_to_cart">Add to Cart</button></div>
+                    <input type="hidden" name="productId" value="${prod._id}">
+                    <input type="number" name="qty" class="qty" min="1" max="99" value="1" title="Quantity" placeholder="Qty" onkeypress="if(this.value.length == 2) return false;">
+                </div>
+            </form>
+            `;
+        });
+        if (window.attachMenuCategoryAddToCart) attachMenuCategoryAddToCart();
+    }
+    document.addEventListener('DOMContentLoaded', renderDrinksProducts);
+    </script>
+
+    <footer class="footer">
+        
+        <section class="box-container">
+
+            <div class="box">
+                <img src="../images/email-icon.png" alt="">
+                <h3>Our Email</h3>
+                <a href="mailto:HEAVENLY-FOODS@gmail.com">HEAVENLY-FOODS@gmail.com</a>
+
+            </div>
+
+            <div class="box">
+                <img src="../images/clock-icon.png" alt="">
+                <h3>Opening Hours</h3>
+                <p>07:00 AM To 10:00 PM </p>
+            </div>
+
+            <div class="box">
+                <img src="../images/map-icon.png" alt="">
+                <h3>Our Address</h3>
+                <a href="https://www.google.com/maps">Belagavi, india - 590001</a>
+            </div>
+
+            <div class="box">
+                <img src="../images/phone-icon.png" alt="">
+                <h3>Our Number</h3>
+                <a href="tel:6361062015">+91-6361062015</a>
+            </div>
+
+        </section>
+
+        <div class="credit">&copy; copyright @ 2025 by <span>THE HEAVENLY HUB</span> | all rights reserved!</div>
+
+    </footer>
+
+    <div class="loader">
+        <img src="../images/loader.gif" alt="">
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.view-image').forEach(function(el) {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function() {
+      const src = this.getAttribute('data-img');
+      const modal = document.createElement('div');
+      modal.style.position = 'fixed';
+      modal.style.top = 0;
+      modal.style.left = 0;
+      modal.style.width = '100vw';
+      modal.style.height = '100vh';
+      modal.style.background = 'rgba(0,0,0,0.8)';
+      modal.style.display = 'flex';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.style.zIndex = 9999;
+      modal.innerHTML = `<img src='${src}' style='max-width:90vw;max-height:90vh;border-radius:10px;box-shadow:0 0 20px #000;'>`;
+      modal.addEventListener('click', function() { document.body.removeChild(modal); });
+      document.body.appendChild(modal);
+    });
+  });
+});
+</script>
+
+</body>
+
+</html>

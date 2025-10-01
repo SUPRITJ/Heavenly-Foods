@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>checkout</title>
+
+    <!-- font awesome cdn link  -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
+    <!-- custom css file link  -->
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+    <header class="header">
+
+        <section class="flex">
+
+            <a href="index.html" class="logo">HEAVENLY FOOD'S</a>
+
+            <nav class="navbar">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="menu.html">Menu</a>
+                <a href="orders.html">Orders</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+
+            <div class="icons">
+                <a href="search.html"><i class="fas fa-search"></i></a>
+                <a href="cart.html"><i class="fas fa-shopping-cart"></i><span id="cart-count">0</span></a>
+                <div id="user-btn" class="fas fa-user"></div>
+                <div id="menu-btn" class="fas fa-bars"></div>
+            </div>
+
+            <div class="profile">
+                <p class="name">SUPRIT JAMDAR</p>
+                <div class="flex">
+                    <a href="profile.html" class="btn">Profile</a>
+                    <a href="#" class="delete-btn">Logout</a>
+                </div>
+                <p class="account"><a href="login.html">Login</a> or <a href="register.html">Register</a></p>
+            </div>
+
+        </section>
+
+    </header>
+
+    <div class="heading">
+        <h3>checkout</h3>
+        <p><a href="index.html">Home </a> <span> / Checkout</span></p>
+    </div>
+
+    <section class="checkout">
+        <h1 class="title">Order Summary</h1>
+        <form id="checkout-form" action="" method="post">
+            <div class="cart-items">
+                <h3>Cart Items</h3>
+                <!-- Cart items will be injected here by JS -->
+            </div>
+            <div class="user-info">
+                <h3>your info</h3>
+                <p><i class="fas fa-user"></i> <span id="checkout-user-name"></span></p>
+                <p><i class="fas fa-phone"></i> <span id="checkout-user-phone"></span></p>
+                <p><i class="fas fa-envelope"></i> <span id="checkout-user-email"></span></p>
+                <a href="update_profile.html" class="btn">Update Info</a>
+                <h3>Delivery Address</h3>
+                <p class="address"><i class="fas fa-map-marker-alt"></i> <span id="checkout-user-address"></span></p>
+                <a href="update_address.html" class="btn">Update Address</a>
+                <select name="method" class="box" required>
+                    <option value="" disabled selected>Select Payment Method</option>
+                    <option value="cash on delivery">Cash On Delivery</option>
+                    <option value="credit card">Credit Card</option>
+                    <option value="paytm">Paytm</option>
+                    <option value="paypal">Paypal</option>
+                </select>
+            </div>
+            <input type="submit" value="place order" name="order" class="btn order-btn">
+        </form>
+    </section>
+
+    <footer class="footer">
+
+        <section class="box-container">
+
+            <div class="box">
+                <img src="images/email-icon.png" alt="">
+                <h3>Our Email</h3>
+                <a href="mailto:HEAVENLY-FOODS@gmail.com">HEAVENLY-FOODS@gmail.com</a>
+
+            </div>
+
+            <div class="box">
+                <img src="images/clock-icon.png" alt="">
+                <h3>Opening Hours</h3>
+                <p>07:00 AM To 10:00 PM </p>
+            </div>
+
+            <div class="box">
+                <img src="images/map-icon.png" alt="">
+                <h3>Our Address</h3>
+                <a href="https://www.google.com/maps">Belagavi, india - 590001</a>
+            </div>
+
+            <div class="box">
+                <img src="images/phone-icon.png" alt="">
+                <h3>Our Number</h3>
+                <a href="tel:6361062015">+91-6361062015</a>
+            </div>
+
+        </section>
+
+        <div class="credit">&copy; copyright @ 2025 by <span>THE HEAVENLY HUB</span> | all rights reserved!</div>
+
+    </footer>
+
+    <div class="loader">
+        <img src="images/loader.gif" alt="">
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', async function () {
+  // Fetch cart data
+  const cartRes = await fetch('/cart-data');
+  const cartItems = await cartRes.json();
+  const cartItemsDiv = document.querySelector('.cart-items');
+  let grandTotal = 0;
+  cartItemsDiv.innerHTML = '<h3>Cart Items</h3>';
+  if (!cartItems.length) {
+    cartItemsDiv.innerHTML += '<p>Your cart is empty.</p>';
+    document.querySelector('.order-btn').setAttribute('disabled', 'disabled');
+  } else {
+    cartItems.forEach(item => {
+      grandTotal += item.price * item.quantity;
+      cartItemsDiv.innerHTML += `<p><span class=\"name\">${item.name}</span><span class=\"price\">₹${item.price * item.quantity}</span></p>`;
+    });
+    cartItemsDiv.innerHTML += `<p class=\"grand-total\"><span class=\"name\">Grand Total :</span> <span class=\"price\">₹${grandTotal}</span></p>`;
+    cartItemsDiv.innerHTML += `<a href=\"cart.html\" class=\"btn\">View Cart</a>`;
+  }
+  // Fetch user info (if logged in)
+  try {
+    const res = await fetch('/profile-data');
+    if (res.ok) {
+      const user = await res.json();
+      document.getElementById('checkout-user-name').textContent = user.name || '';
+      document.getElementById('checkout-user-phone').textContent = (user.phone !== undefined && user.phone !== null && user.phone !== '') ? user.phone : 'Not provided';
+      document.getElementById('checkout-user-email').textContent = user.email || '';
+      document.getElementById('checkout-user-address').textContent = user.address || '';
+    }
+  } catch {}
+  // Place order handler
+  const form = document.getElementById('checkout-form');
+  form.onsubmit = async function(e) {
+    e.preventDefault();
+    const method = form.querySelector('select[name="method"]').value;
+    if (!method) return alert('Please select a payment method.');
+    if (!confirm('Are you sure you want to place this order?')) return;
+    const res = await fetch('/place-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ method })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('Order placed successfully!');
+      window.location.href = '/orders.html';
+    } else {
+      alert(data.error || 'Failed to place order');
+    }
+  };
+});
+</script>
+
+</body>
+
+</html>

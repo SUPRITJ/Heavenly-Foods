@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>my cart</title>
+
+    <!-- font awesome cdn link  -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
+    <!-- custom css file link  -->
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+    <header class="header">
+
+        <section class="flex">
+
+            <a href="index.html" class="logo">HEAVENLY FOOD'S</a>
+
+            <nav class="navbar">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="menu.html">Menu</a>
+                <a href="orders.html">Orders</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+
+            <div class="icons">
+                <a href="search.html"><i class="fas fa-search"></i></a>
+                <a href="cart.html"><i class="fas fa-shopping-cart"></i><span id="cart-count">0</span></a>
+                <div id="user-btn" class="fas fa-user"></div>
+                <div id="menu-btn" class="fas fa-bars"></div>
+            </div>
+
+            <div class="profile">
+                <p class="name">Guest</p>
+                <div class="flex">
+                    <a href="profile.html" class="btn">Profile</a>
+                    <a href="#" class="delete-btn">Logout</a>
+                </div>
+                <p class="account"><a href="login.html">Login</a> or <a href="register.html">Register</a></p>
+            </div>
+
+        </section>
+
+    </header>
+
+    <div class="heading">
+        <h3>Shopping Cart</h3>
+        <p><a href="index.html">Home </a> <span> / Cart</span></p>
+    </div>
+
+    <section class="products">
+
+        <h1 class="title">Your Cart</h1>
+
+        <div class="cart-total">
+            <p>Grand Total : <span id="cart-grand-total">₹0/-</span></p>
+            <a href="checkout.html" class="btn" id="checkout-orders-btn">Checkout Orders</a>
+        </div>
+        <div class="box-container"></div>
+        <div class="cart-items-summary" style="display:none"></div>
+        <div class="more-btn">
+            <a href="#" class="delete-btn" id="delete-all-btn">Delete All</a>
+        </div>
+
+    </section>
+
+    <script>
+        // --- Cart Page Implementation ---
+        document.addEventListener('DOMContentLoaded', async function () {
+            const boxContainer = document.querySelector('.box-container');
+            const grandTotalSpan = document.getElementById('cart-grand-total');
+            // Fetch cart data
+            async function loadCart() {
+                const cartRes = await fetch('/cart-data');
+                const cartItems = await cartRes.json();
+                let grandTotal = 0;
+                boxContainer.innerHTML = '';
+                if (!cartItems.length) {
+                    boxContainer.innerHTML = '<p style="text-align:center">Your cart is empty.</p>';
+                } else {
+                    cartItems.forEach(item => {
+                        let imgPath = item.image;
+                        if (imgPath.startsWith('uploaded_img/')) {
+                            imgPath = '/' + imgPath.replace(/^uploaded_img\//, 'uploaded_img/');
+                        }
+                        const subTotal = item.price * item.quantity;
+                        grandTotal += subTotal;
+                        boxContainer.innerHTML += `
+                        <div class="box">
+                            <a href="#" class="fas fa-eye view-image" data-img="${imgPath}" title="Quick View"></a>
+                            <button class="fas fa-times delete-item" type="button" data-id="${item.productId}" title="Delete"></button>
+                            <img src="${imgPath}" alt="${item.name}">
+                            <div class="name">${item.name}</div>
+                            <div class="flex">
+                                <div class="price"><span>₹</span>${item.price}</div>
+                                <input type="number" name="qty" class="qty" min="1" max="99" value="${item.quantity}" data-id="${item.productId}" onkeypress="if(this.value.length == 2) return false;">
+                                <button type="button" class="fas fa-edit update-qty" data-id="${item.productId}"></button>
+                            </div>
+                            <div class="sub-total">Sub Total : <span>₹${subTotal}</span></div>
+                        </div>
+                        `;
+                    });
+                }
+                grandTotalSpan.innerText = `₹${grandTotal}`;
+                attachCartEvents();
+                if (window.attachQuickViewModal) window.attachQuickViewModal();
+            }
+            await loadCart();
+            // Reset cart (delete all)
+            document.getElementById('delete-all-btn').onclick = async function(e) {
+                e.preventDefault();
+                if (!confirm('Delete all from cart?')) return;
+                const cartRes = await fetch('/cart-data');
+                const cartItems = await cartRes.json();
+                for (const item of cartItems) {
+                    await fetch('/remove-from-cart', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId: item.productId })
+                    });
+                }
+                await loadCart();
+            };
+
+            // Attach all cart item button events
+            function attachCartEvents() {
+                // Delete single item
+                document.querySelectorAll('.delete-item').forEach(btn => {
+                    btn.onclick = async function () {
+                        if (!confirm('Delete this item?')) return;
+                        await fetch('/remove-from-cart', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ productId: btn.dataset.id })
+                        });
+                        await loadCart();
+                    };
+                });
+                // Update quantity
+                document.querySelectorAll('.update-qty').forEach(btn => {
+                    btn.onclick = async function () {
+                        const input = btn.parentElement.querySelector('.qty');
+                        const qty = parseInt(input.value);
+                        if (qty < 1) return alert('Quantity must be at least 1');
+                        btn.disabled = true;
+                        btn.classList.add('updating');
+                        const response = await fetch('/add-to-cart', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ productId: btn.dataset.id, quantity: qty })
+                        });
+                        btn.disabled = false;
+                        btn.classList.remove('updating');
+                        if (response.ok) {
+                            // Show a quick success message
+                            const msg = document.createElement('span');
+                            msg.textContent = '✔';
+                            msg.style.color = 'green';
+                            msg.style.marginLeft = '8px';
+                            btn.parentElement.appendChild(msg);
+                            setTimeout(() => msg.remove(), 1000);
+                        } else {
+                            alert('Failed to update quantity');
+                        }
+                        await loadCart();
+                    };
+                });
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkoutBtn = document.getElementById('checkout-orders-btn');
+            if (checkoutBtn) {
+                checkoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.location.href = 'checkout.html';
+                });
+            }
+        });
+    </script>
+
+    <footer class="footer">
+
+        
+        <section class="box-container">
+
+            <div class="box">
+                <img src="images/email-icon.png" alt="">
+                <h3>Our Email</h3>
+                <a href="mailto:HEAVENLY-FOODS@gmail.com">HEAVENLY-FOODS@gmail.com</a>
+
+            </div>
+
+            <div class="box">
+                <img src="images/clock-icon.png" alt="">
+                <h3>Opening Hours</h3>
+                <p>07:00 AM To 10:00 PM </p>
+            </div>
+
+            <div class="box">
+                <img src="images/map-icon.png" alt="">
+                <h3>Our Address</h3>
+                <a href="https://www.google.com/maps">Belagavi, india - 590001</a>
+            </div>
+
+            <div class="box">
+                <img src="images/phone-icon.png" alt="">
+                <h3>Our Number</h3>
+                <a href="tel:6361062015">+91-6361062015</a>
+            </div>
+
+        </section>
+
+        <div class="credit">&copy; copyright @ 2025 by <span>THE HEAVENLY HUB</span> | all rights reserved!</div>
+
+    </footer>
+
+    <div class="loader">
+        <img src="images/loader.gif" alt="">
+    </div>
+
+    <script src="js/script.js"></script>
+
+</body>
+
+</html>
